@@ -1,0 +1,39 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100..900&family=Montserrat:wght@100..900&display=swap");
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-navbarColor: #ffffff;
+  --color-btnColor: #3364f7;
+  --color-linkColor: #2a5bd7;
+
+  /* Background Gradients */
+  --bg-custom-gradient: linear-gradient(to right, #3b82f6, #9333ea);
+  --bg-custom-gradient-2: linear-gradient(to left, #3b82f6, #f43f5e);
+  --bg-card-gradient: linear-gradient(to right, #38b2ac, #4299e1);
+
+  /* Shadows */
+  --shadow-custom: 0 0 15px rgba(0, 0, 0, 0.3);
+  --shadow-right: 10px 0px 10px -5px rgba(0, 0, 0, 0.3);
+
+  /* Fonts */
+  --font-roboto: "Roboto", sans-serif;
+  --font-montserrat: "Montserrat", sans-serif;
+}
+
+.btn-gradient {
+  background: var(--bg-custom-gradient);
+}
+
+
+body{
+  margin: 0;
+  padding: 0;
+}
+
+
+.app-container{
+  max-width: 1800px;       
+  margin: 0 auto;           
+  width: 100%;
+}
