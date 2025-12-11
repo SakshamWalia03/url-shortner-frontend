@@ -1,6 +1,5 @@
 import dayjs from "dayjs";
-import React, { useState } from "react";
-import CopyToClipboard from "react-copy-to-clipboard";
+import { useState } from "react";
 import { FaExternalLinkAlt, FaRegCalendarAlt } from "react-icons/fa";
 import { IoCopy } from "react-icons/io5";
 import { LiaCheckSolid } from "react-icons/lia";
@@ -14,29 +13,34 @@ const ShortenItem = ({ originalUrl, shortUrl, clickCount, createdDate }) => {
   const [isCopied, setIsCopied] = useState(false);
   const [analyticToggle, setAnalyticToggle] = useState(false);
 
-  const subDomain = import.meta.env.VITE_REACT_FRONT_END_URL.replace(
-    /^https?:\/\//,
-    ""
-  );
+  const finalShortUrl = `${import.meta.env.VITE_REACT_FRONT_END_URL}/s/${shortUrl}`;
+  const subDomain = import.meta.env.VITE_REACT_FRONT_END_URL.replace(/^https?:\/\//, "");
+
+  // 📌 Native copy handler
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(finalShortUrl);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error("Copy failed:", err);
+    }
+  };
 
   return (
     <div className="bg-white shadow-xl border border-gray-200 px-6 py-6 rounded-xl mb-6 transition-all hover:shadow-2xl">
-      
       <div className="flex sm:flex-row flex-col justify-between w-full gap-5">
         
         <div className="flex-1 space-y-3">
-          
+          {/* Short URL */}
           <div className="flex items-center gap-2">
-
-            {/* Short URL */}
             <Link
               target="_blank"
-              to={`${import.meta.env.VITE_REACT_FRONT_END_URL}/s/${shortUrl}`}
+              to={finalShortUrl}
               className="text-base sm:text-lg lg:text-xl font-semibold font-montserrat text-blue-700 hover:underline"
             >
               {subDomain + "/s/" + shortUrl}
             </Link>
-
             <FaExternalLinkAlt className="text-blue-700 text-xs sm:text-sm" />
           </div>
 
@@ -65,15 +69,14 @@ const ShortenItem = ({ originalUrl, shortUrl, clickCount, createdDate }) => {
         {/* Buttons */}
         <div className="sm:flex sm:justify-end gap-4 grid grid-cols-1 w-full h-fit sm:w-auto">
 
-          <CopyToClipboard
-            text={`${import.meta.env.VITE_REACT_FRONT_END_URL}/s/${shortUrl}`}
-            onCopy={() => setIsCopied(true)}
+          {/* Copy Button (native API) */}
+          <button
+            onClick={handleCopy}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-md transition-all font-semibold text-sm sm:text-base"
           >
-            <button className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-md transition-all font-semibold text-sm sm:text-base">
-              {isCopied ? "Copied" : "Copy"}
-              {isCopied ? <LiaCheckSolid /> : <IoCopy />}
-            </button>
-          </CopyToClipboard>
+            {isCopied ? "Copied" : "Copy"}
+            {isCopied ? <LiaCheckSolid /> : <IoCopy />}
+          </button>
 
           <button
             onClick={() => setAnalyticToggle((prev) => !prev)}
