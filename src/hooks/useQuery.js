@@ -1,13 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "../api/api";
 
-// Fetch total clicks
-export const useFetchTotalClicks = (token, onError) => {
+export const useFetchTotalClicks = (token, startDate, endDate, onError) => {
+  const isValidRange =
+    startDate &&
+    endDate &&
+    new Date(endDate) >= new Date(startDate);
+
   return useQuery({
-    queryKey: ["url-totalclicks"],
+    queryKey: ["url-totalclicks", startDate, endDate],
     queryFn: async () => {
       const res = await api.get(
-        "/api/urls/totalClicks?startDate=2025-01-01&endDate=2025-12-31",
+        `/api/urls/totalClicks?startDate=${startDate}&endDate=${endDate}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -16,7 +20,7 @@ export const useFetchTotalClicks = (token, onError) => {
       );
       return res.data;
     },
-    enabled: !!token,
+    enabled: !!token && isValidRange,
     staleTime: 5000,
     retry: false,
     onError,
@@ -32,7 +36,6 @@ export const useFetchTotalClicks = (token, onError) => {
   });
 };
 
-// Fetch user's short URLs
 export const useFetchMyShortUrls = (token, onError) => {
   return useQuery({
     queryKey: ["my-shorturls"],
