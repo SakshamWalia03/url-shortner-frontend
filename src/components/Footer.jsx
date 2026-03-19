@@ -1,39 +1,47 @@
-import React from "react";
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
+import { motion } from "framer-motion";
+import { FaGithub } from "react-icons/fa";
+import styles from "./Dashboard.module.scss";
 
-const Footer = () => {
-  return (
-    <footer className="bg-white text-gray-700 py-4 relative z-40 shadow-inner w-full">
-      <div className="container mx-auto lg:px-14 flex flex-col lg:flex-row justify-between items-center gap-6 max-w-[1920px]">
-        {/* Branding */}
-        <div className="text-center lg:text-left">
-          <img
-            src="/images/image1.png"
-            alt="BitLeap Logo"
-            className="mx-auto lg:mx-0 w-28 md:w-32"
-          />
-        </div>
+const Footer = () => (
+  <footer className={styles.footer}>
+    <div className={styles.footer__inner}>
+      <motion.div
+        className={styles.footer__logo}
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        BitLeap
+      </motion.div>
 
-        {/* Social Links */}
-        <div className="flex items-center gap-5">
-          {[FaFacebook, FaTwitter, FaInstagram, FaLinkedin].map((Icon, idx) => (
-            <a
-              key={idx}
-              href="#"
-              className="text-gray-700 hover:text-indigo-500 transition-colors transform hover:scale-110"
-            >
-              <Icon size={24} />
-            </a>
-          ))}
-        </div>
+      <motion.p
+        className={styles.footer__copy}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        &copy; {new Date().getFullYear()} BitLeap. All rights reserved.
+      </motion.p>
 
-        {/* Copyright */}
-        <p className="mt-4 lg:mt-0 text-sm text-gray-600 lg:text-left">
-          &copy; {new Date().getFullYear()} BitLeap. All rights reserved.
-        </p>
-      </div>
-    </footer>
-  );
-};
+      <motion.div
+        className={styles.footer__github}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <span>Made by</span>
+        <a
+          href="https://github.com/SakshamWalia03"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <FaGithub />
+          GitHub
+        </a>
+      </motion.div>
+    </div>
+    <div className={styles.footer__line} />
+  </footer>
+);
 
 export default Footer;

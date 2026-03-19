@@ -1,0 +1,183 @@
+@use '../styles/variables' as *;
+
+.auth {
+  min-height: calc(100vh - #{$navbar-height});
+  @include flex-center;
+  position: relative;
+  overflow: hidden;
+  padding: 40px 16px 60px;
+  font-family: $font-primary;
+
+  @include respond-to(sm) { padding: 56px 24px 72px; }
+
+  &__form_wrap {
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__card {
+    @include dark-card;
+    padding: 36px 28px;
+
+    @include respond-to(sm) { padding: 44px 40px; }
+  }
+
+  &__header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  &__badge {
+    display: inline-block;
+    padding: 6px 14px;
+    margin-bottom: 16px;
+    border-radius: $radius-full;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+
+    &--login {
+      background: rgba($cyan-500, 0.12);
+      border: 1px solid rgba($cyan-500, 0.25);
+      span { color: $cyan-400; }
+    }
+
+    &--register {
+      background: rgba($violet-500, 0.12);
+      border: 1px solid rgba($violet-500, 0.25);
+      span { color: $violet-400; }
+    }
+  }
+
+  &__title {
+    font-size: clamp(26px, 4vw, 32px);
+    font-weight: 900;
+    color: $text-primary;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+
+    &-highlight { @include gradient-text($gradient-primary); }
+  }
+
+  &__subtitle {
+    font-size: 14px;
+    color: $text-secondary;
+    line-height: 1.6;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  &__btn {
+    @include gradient-btn;
+    width: 100%;
+    padding: 14px;
+    font-size: 15px;
+    @include flex-center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  &__footer {
+    text-align: center;
+    font-size: 13px;
+    color: $text-secondary;
+    margin-top: 4px;
+
+    a {
+      font-weight: 700;
+      color: $cyan-400;
+      cursor: pointer;
+      transition: color $transition-fast;
+
+      &:hover { color: $cyan-300; }
+    }
+  }
+
+  &__legal {
+    text-align: center;
+    font-size: 11px;
+    color: $text-muted;
+    margin-top: 20px;
+    line-height: 1.6;
+
+    a {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      transition: color $transition-fast;
+
+      &:hover { color: $text-secondary; }
+    }
+  }
+
+  &__hint {
+    background: rgba($dark-700, 0.6);
+    border: 1px solid $border-subtle;
+    border-radius: $radius-md;
+    padding: 14px 16px;
+
+    p {
+      font-size: 12px;
+      font-weight: 700;
+      color: $text-secondary;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+
+      li {
+        font-size: 12px;
+        color: $text-muted;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        span { color: $cyan-400; font-weight: 700; }
+      }
+    }
+  }
+}
+
+// ── Field component ────────────────────────────────────────────────────────
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__label {
+    font-size: 13px;
+    font-weight: 700;
+    color: $text-secondary;
+    letter-spacing: 0.03em;
+  }
+
+  &__input {
+    @include dark-input;
+
+    &--error {
+      border-color: rgba($rose-500, 0.6);
+      &:focus { box-shadow: 0 0 0 3px rgba($rose-500, 0.15); }
+    }
+  }
+
+  &__error {
+    font-size: 12px;
+    font-weight: 600;
+    color: $rose-400;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+}

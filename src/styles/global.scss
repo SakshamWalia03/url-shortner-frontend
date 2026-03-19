@@ -1,0 +1,155 @@
+@use './variables' as *;
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: $font-primary;
+  color: $text-primary;
+  background-color: $dark-950;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+
+  // Subtle grid pattern overlay on entire bg
+  &::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba($cyan-500, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba($cyan-500, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: $font-primary;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+// ---- Page layout container ----
+.app-container {
+  min-height: calc(100vh - #{$navbar-height});
+}
+
+// ---- Global page content wrapper (centers text on wide screens) ----
+.page-wrap {
+  @include page-wrap;
+}
+
+// ---- Spinner (border spinner) ----
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba($white, 0.3);
+  border-top-color: $white;
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+.spinner--dark {
+  border-color: rgba($cyan-500, 0.25);
+  border-top-color: $cyan-500;
+}
+
+// ---- Loading center ----
+.loading-center {
+  @include flex-center;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 360px;
+
+  p {
+    color: $text-secondary;
+    font-weight: 600;
+    font-size: 14px;
+  }
+}
+
+// ---- Animated glow blobs ----
+.blobs {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: pulse 6s ease-in-out infinite;
+
+  &--cyan {
+    background: radial-gradient(circle, rgba($cyan-500, 0.35), transparent 70%);
+    width: 500px;
+    height: 500px;
+  }
+
+  &--violet {
+    background: radial-gradient(circle, rgba($violet-500, 0.3), transparent 70%);
+    width: 500px;
+    height: 500px;
+    animation-delay: 2s;
+  }
+
+  &--blue {
+    background: radial-gradient(circle, rgba($blue-500, 0.25), transparent 70%);
+    width: 400px;
+    height: 400px;
+    animation-delay: 4s;
+  }
+}
+
+// ---- Divider line ----
+.divider {
+  height: 1px;
+  background: $border-subtle;
+  margin: 0;
+}
+
+// ---- Glow text ----
+.text-gradient {
+  @include gradient-text($gradient-primary);
+}
+
+// ---- Scrollbar (dark theme) ----
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track { background: $dark-900; }
+::-webkit-scrollbar-thumb {
+  background: $dark-600;
+  border-radius: 3px;
+  &:hover { background: $dark-500; }
+}

@@ -1,26 +1,41 @@
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Modal from '@mui/material/Modal';
-import CreateNewShorten from './CreateNewShorten';
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect } from "react";
+import CreateNewShorten from "./CreateNewShorten";
+import styles from "../Dashboard.module.scss";
 
-const ShortenPopUp = ({ open, setOpen, refetch}) => {
-
-    const handleClose = () => {
-        setOpen(false);
+const ShortenPopUp = ({ open, setOpen, refetch }) => {
+  // Close on Escape key
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === "Escape") setOpen(false);
     };
+    if (open) document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open, setOpen]);
+
+  // Lock body scroll
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
 
   return (
-    <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <div className='flex justify-center items-center h-full w-full'>
-            <CreateNewShorten setOpen={setOpen} refetch={refetch} />
-        </div>
-      </Modal>
-  )
-}
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className={styles["modal-overlay"]}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setOpen(false);
+          }}
+        >
+          <CreateNewShorten setOpen={setOpen} refetch={refetch} />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
 
 export default ShortenPopUp;

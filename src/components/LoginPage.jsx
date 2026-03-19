@@ -1,104 +1,121 @@
-import React, {  useState } from "react";
-import { set, useForm } from "react-hook-form";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import TextField from "./TextField";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../api/api";
+import { motion } from "framer-motion";
+import { useDispatch } from "react-redux";
+import { setAccessToken } from "../store/authSlice";
+import { loginApi } from "../api/auth.api";
 import toast from "react-hot-toast";
-import { useStoreContext } from "../contextApi/ContextApi";
-
+import styles from "./Auth.module.scss";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [loader, setLoader] = useState(false);
-  const { setToken } = useStoreContext();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      username: "",
-      password: "",
-    },
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    defaultValues: { username: "", password: "" },
     mode: "onTouched",
   });
 
   const loginHandler = async (data) => {
     setLoader(true);
     try {
-      const { data: response } = await api.post("/api/auth/public/login", data);
-      // Store token in local storage
-      setToken(response.data.token);
-      localStorage.setItem("JWT_TOKEN", JSON.stringify(response.data.token));
-      toast.success("Logged In Successful");
+      const { data: res } = await loginApi(data);
 
+      // Backend returns accessToken in body; refreshToken is set as httpOnly cookie
+      const accessToken = res?.data?.accessToken ?? res?.accessToken;
+
+      if (!accessToken) {
+        throw new Error("Server did not return an access token.");
+      }
+
+      dispatch(setAccessToken(accessToken));
+      toast.success("Logged in successfully!");
       reset();
       navigate("/dashboard");
     } catch (error) {
-      const message = error.response?.data?.message || "Failed to Login";
-      toast.error(message);
+      const msg = error.response?.data?.message ?? error.message ?? "Failed to login";
+      toast.error(msg);
     } finally {
       setLoader(false);
     }
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex justify-center items-center">
-      <form
-        onSubmit={handleSubmit(loginHandler)}
-        className="sm:w-[450px] w-[360px]  shadow-custom py-8 sm:px-8 px-4 rounded-md"
+    <div className={styles.auth}>
+      <div className="blobs">
+        <div className="blob blob--cyan"   style={{ top: 0, left: "25%" }} />
+        <div className="blob blob--violet" style={{ bottom: 0, right: "25%" }} />
+      </div>
+
+      <motion.div
+        className={styles.auth__form_wrap}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55 }}
       >
-        <h1 className="text-center font-serif text-btnColor font-bold lg:text-3xl text-2xl">
-          Login
-        </h1>
+        <div className={styles.auth__card}>
+          <div className={styles.auth__header}>
+            <motion.div
+              className={`${styles.auth__badge} ${styles["auth__badge--login"]}`}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 }}
+            >
+              <span>Welcome Back</span>
+            </motion.div>
 
-        <hr className="mt-2 mb-5 text-black" />
+            <motion.h1
+              className={styles.auth__title}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+            >
+              Login to <span className={styles["auth__title-highlight"]}>BitLeap</span>
+            </motion.h1>
 
-        <div className="flex flex-col gap-3">
-          <TextField
-            label="UserName"
-            required
-            id="username"
-            type="text"
-            message="*Username is required"
-            placeholder="Type your username"
-            register={register}
-            errors={errors}
-          />
+            <motion.p
+              className={styles.auth__subtitle}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              Continue managing your links with ease
+            </motion.p>
+          </div>
 
-          <TextField
-            label="Password"
-            required
-            id="password"
-            type="password"
-            message="*Password is required"
-            placeholder="Type your password"
-            register={register}
-            min={8}
-            errors={errors}
-          />
+          <motion.form
+            className={styles.auth__form}
+            onSubmit={handleSubmit(loginHandler)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.25 }}
+          >
+            <TextField label="Username" required id="username" type="text"     message="Username is required" placeholder="Enter your username" register={register} errors={errors} />
+            <TextField label="Password" required id="password" type="password" message="Password is required" placeholder="Enter your password" register={register} min={8} errors={errors} />
+
+            <motion.button
+              type="submit"
+              className={styles.auth__btn}
+              disabled={loader}
+              whileHover={{ scale: loader ? 1 : 1.02 }}
+              whileTap={{ scale: loader ? 1 : 0.98 }}
+            >
+              {loader ? <><span className="spinner" /> Logging in...</> : "Login to Dashboard"}
+            </motion.button>
+          </motion.form>
+
+          <motion.p className={styles.auth__footer} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+            Don't have an account? <Link to="/register">Create Account</Link>
+          </motion.p>
         </div>
 
-        <button
-          disabled={loader}
-          type="submit"
-          className="btn-gradient font-semibold text-white  bg-custom-gradient w-full py-2 hover:text-slate-400 transition-colors duration-100 rounded-sm my-3"
-        >
-          {loader ? "Loading..." : "Login"}
-        </button>
-
-        <p className="text-center text-sm text-slate-700 mt-6">
-          Create a new Account?&nbsp;&nbsp;
-          <Link
-            className="font-semibold underline hover:text-black"
-            to="/register"
-          >
-            <span className="text-btnColor">Register Now</span>
-          </Link>
-        </p>
-      </form>
+        <motion.p className={styles.auth__legal} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+          By logging in, you agree to our <Link to="/login">Terms of Service</Link> and <Link to="/login">Privacy Policy</Link>
+        </motion.p>
+      </motion.div>
     </div>
   );
 };

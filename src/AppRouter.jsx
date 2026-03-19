@@ -13,19 +13,16 @@ import PrivateRoute from "./PrivateRoute";
 
 const AppRouter = () => {
   const location = useLocation();
-
-  // hide navbar & footer on redirect page
   const hideLayout = location.pathname.startsWith("/s/");
 
   return (
     <>
       {!hideLayout && <Navbar />}
-      <Toaster />
+      <Toaster position="top-right" />
       <div className="app-container">
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/about" element={<AboutPage />} />
-
           <Route
             path="/register"
             element={
@@ -34,7 +31,6 @@ const AppRouter = () => {
               </PrivateRoute>
             }
           />
-
           <Route
             path="/login"
             element={
@@ -43,7 +39,6 @@ const AppRouter = () => {
               </PrivateRoute>
             }
           />
-
           <Route
             path="/dashboard"
             element={
@@ -52,10 +47,7 @@ const AppRouter = () => {
               </PrivateRoute>
             }
           />
-
-          {/* Add SubDomain routes here */}
           <Route path="/s/:shortUrl" element={<ShortenUrlPage />} />
-
           <Route path="/error" element={<ErrorPage />} />
         </Routes>
       </div>

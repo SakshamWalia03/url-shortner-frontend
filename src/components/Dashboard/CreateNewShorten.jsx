@@ -1,115 +1,108 @@
-import React, { useState } from "react";
-import { useStoreContext } from "../../contextApi/ContextApi";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import TextField from "../TextField";
-import { Tooltip } from "@mui/material";
 import { RxCross2 } from "react-icons/rx";
-import api from "../../api/api";
+import { FaLink, FaMagic } from "react-icons/fa";
+import { createShortUrlApi } from "../../api/urls.api";
 import toast from "react-hot-toast";
+import styles from "../Dashboard.module.scss";
 
 const CreateNewShorten = ({ setOpen, refetch }) => {
-  const { token } = useStoreContext();
   const [loading, setLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      originalUrl: "",
-    },
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    defaultValues: { originalUrl: "" },
     mode: "onTouched",
   });
 
   const createShortUrlHandler = async (data) => {
     setLoading(true);
     try {
-      const { data: res } = await api.post("/api/urls/shorten", data, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: "Bearer " + token,
-        },
-      });
+      const { data: res } = await createShortUrlApi(data);
 
-      const shortenUrl = `${
-        import.meta.env.VITE_REACT_SUBDOMAIN_URL +
-        `/s/${res.shortUrl}`
-      }`;
-
-      navigator.clipboard.writeText(shortenUrl).then(() => {
-        toast.success("Short URL Copied to Clipboard", {
-          position: "bottom-center",
-          className: "mb-5",
-          duration: 3000,
-        });
-      });
+      const shortenUrl = `${import.meta.env.VITE_REACT_FRONT_END_URL}/s/${res.shortUrl ?? res.data?.shortUrl}`;
+      await navigator.clipboard.writeText(shortenUrl).catch(() => {});
+      toast.success("Short URL copied to clipboard!", { position: "bottom-center", duration: 3000 });
 
       await refetch();
       reset();
       setOpen(false);
-    } catch (error) {
-      toast.error("Create ShortURL Failed");
+    } catch {
+      toast.error("Failed to create short URL");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full h-full flex justify-center items-center bg-black/10 backdrop-blur-sm p-4">
-      <form
-        onSubmit={handleSubmit(createShortUrlHandler)}
-        className="sm:w-[470px] w-[360px] relative bg-white shadow-xl border border-gray-200 pt-10 pb-6 sm:px-10 px-5 rounded-2xl"
-      >
-        {/* Close Button */}
-        {!loading && (
-          <Tooltip title="Close">
-            <button
-              disabled={loading}
+    <motion.div
+      className={styles.modal}
+      initial={{ opacity: 0, scale: 0.9, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9, y: 20 }}
+      transition={{ duration: 0.28 }}
+    >
+      <div className={styles.modal__glow} />
+      <div className={styles.modal__inner}>
+        <div className={styles.modal__header}>
+          {!loading && (
+            <motion.button
+              className={styles.modal__close}
               onClick={() => setOpen(false)}
-              className="absolute right-4 top-4 hover:bg-gray-100 p-1 rounded-full transition"
+              whileHover={{ scale: 1.1, rotate: 90 }}
+              whileTap={{ scale: 0.9 }}
+              type="button"
             >
-              <RxCross2 className="text-gray-700 text-2xl" />
-            </button>
-          </Tooltip>
-        )}
-
-        {/* Title */}
-        <h1 className="font-montserrat text-center font-bold sm:text-2xl text-xl text-gray-800">
-          Create Short URL
-        </h1>
-
-        <p className="text-center text-gray-600 text-sm mt-1 mb-4">
-          Paste a long URL below and generate a clean short link
-        </p>
-
-        <hr className="border-gray-300 mb-4" />
-
-        {/* Input */}
-        <div>
-          <TextField
-            label="Enter URL"
-            required
-            id="originalUrl"
-            placeholder="https://example.com"
-            type="url"
-            message="Url is required"
-            register={register}
-            errors={errors}
-          />
+              <RxCross2 />
+            </motion.button>
+          )}
+          <div className={styles.modal__icon_wrap}><FaLink /></div>
+          <h2 className={styles.modal__title}>Create Short URL</h2>
+          <p className={styles.modal__subtitle}>Transform long URLs into short, shareable links instantly</p>
         </div>
 
-        {/* Button */}
-        <button
-          className="w-full btn-gradient py-2.5 text-white font-semibold rounded-lg mt-5 shadow-md hover:opacity-90 transition"
-          type="submit"
-        >
-          {loading ? "Creating..." : "Create Short URL"}
-        </button>
-      </form>
-    </div>
+        <div className={styles.modal__body}>
+          <form onSubmit={handleSubmit(createShortUrlHandler)}>
+            <div style={{ marginBottom: 16 }}>
+              <TextField
+                required
+                id="originalUrl"
+                label="Enter Your Long URL"
+                placeholder="https://example.com/very-long-url-here"
+                type="url"
+                message="A valid URL is required"
+                register={register}
+                errors={errors}
+              />
+              <p className={styles["modal__field-hint"]}>
+                <FaMagic /> Paste any valid URL and we'll shorten it for you
+              </p>
+            </div>
+
+            <div className={styles.modal__features}>
+              <p>What you'll get:</p>
+              <ul>
+                <li><span>✓</span> Clean, memorable short link</li>
+                <li><span>✓</span> Real-time click analytics</li>
+                <li><span>✓</span> Automatic clipboard copy</li>
+                <li><span>✓</span> Device &amp; geo breakdown</li>
+              </ul>
+            </div>
+
+            <motion.button
+              type="submit"
+              className={styles.modal__submit}
+              disabled={loading}
+              whileHover={{ scale: loading ? 1 : 1.02 }}
+              whileTap={{ scale: loading ? 1 : 0.98 }}
+            >
+              {loading ? <><span className="spinner" /> Creating...</> : <><FaLink /> Create Short URL</>}
+            </motion.button>
+          </form>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 

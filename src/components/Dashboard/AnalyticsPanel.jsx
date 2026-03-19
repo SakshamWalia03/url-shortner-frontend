@@ -1,161 +1,326 @@
-import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { Hourglass } from "react-loader-spinner";
+import {
+  FaChartLine, FaSync, FaDesktop, FaMobile, FaGlobe,
+  FaChrome, FaFirefox, FaSafari, FaEdge,
+} from "react-icons/fa";
+import { Doughnut, Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS, ArcElement, BarElement, CategoryScale,
+  LinearScale, Legend, Tooltip, Filler,
+} from "chart.js";
 import Graph from "./Graph";
-import api from "../../api/api";
-import { toast } from "react-hot-toast";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import {
+  useFetchShortLinkTotalClicks,
+  useFetchDeviceAnalytics,
+  useFetchBrowserAnalytics,
+  useFetchCountryAnalytics,
+} from "../../hooks/useQuery.js";
 import dayjs from "dayjs";
+import styles from "../Dashboard.module.scss";
+
+ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Legend, Tooltip, Filler);
+
+const FONT = "'Plus Jakarta Sans', sans-serif";
+
+const toArray = (data = {}, keyName = "name") => {
+  if (!data) return [];
+  if (Array.isArray(data)) {
+    return data.map((item) => ({
+      [keyName]: item[keyName] || item.name || item.device || item.browser || item.country || "Unknown",
+      count: item.count ?? item.value ?? item.clicks ?? 0,
+    }));
+  }
+  return Object.entries(data).map(([key, value]) => ({
+    [keyName]: key,
+    count: typeof value === "object" ? value.value ?? value.count ?? 0 : value,
+  }));
+};
+
+const doughnutColors = [
+  ["rgba(6,182,212,0.8)", "rgba(6,182,212,1)"],
+  ["rgba(139,92,246,0.8)", "rgba(139,92,246,1)"],
+  ["rgba(236,72,153,0.8)", "rgba(236,72,153,1)"],
+  ["rgba(251,191,36,0.8)", "rgba(251,191,36,1)"],
+  ["rgba(16,185,129,0.8)", "rgba(16,185,129,1)"],
+];
+
+const doughnutOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: "bottom",
+      labels: { font: { family: FONT, size: 12, weight: "600" }, padding: 14, usePointStyle: true },
+    },
+    tooltip: {
+      backgroundColor: "rgba(8,13,20,0.97)",
+      padding: 12,
+      cornerRadius: 8,
+      bodyFont: { family: FONT, size: 13 },
+      titleFont: { family: FONT, size: 14, weight: "700" },
+    },
+  },
+};
+
+const barOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: { backgroundColor: "rgba(8,13,20,0.97)", padding: 12, cornerRadius: 8 },
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: { stepSize: 1, font: { family: FONT } },
+      grid: { color: "rgba(148,163,184,0.1)" },
+    },
+    x: { ticks: { font: { family: FONT } }, grid: { display: false } },
+  },
+};
+
+const getBrowserIcon = (name = "") => {
+  const n = name.toLowerCase();
+  if (n.includes("chrome")) return <FaChrome style={{ color: "#f59e0b" }} />;
+  if (n.includes("firefox")) return <FaFirefox style={{ color: "#f97316" }} />;
+  if (n.includes("safari")) return <FaSafari style={{ color: "#60a5fa" }} />;
+  if (n.includes("edge")) return <FaEdge style={{ color: "#2563eb" }} />;
+  return <FaGlobe style={{ color: "#94a3b8" }} />;
+};
+
+const getDeviceIcon = (name = "") => {
+  const n = name.toLowerCase();
+  if (n.includes("mobile") || n.includes("phone"))
+    return <FaMobile style={{ color: "#8b5cf6" }} />;
+  return <FaDesktop style={{ color: "#06b6d4" }} />;
+};
+
+const flagEmoji = (code) => {
+  if (!code || code === "Unknown") return "🌍";
+  try {
+    return String.fromCodePoint(...code.toUpperCase().split("").map((c) => 127397 + c.charCodeAt()));
+  } catch { return "🌍"; }
+};
 
 const AnalyticsPanel = ({ shortUrl, token }) => {
-  const [analyticsData, setAnalyticsData] = useState([]);
-  const [loader, setLoader] = useState(false);
+  const today = dayjs().format("YYYY-MM-DD");
+  const firstDayOfYear = `${dayjs().year()}-01-01`;
 
-  const currentYear = dayjs().year();
-  const firstDayOfYear = dayjs(`${currentYear}-01-01`);
-  const today = dayjs();
+  const [startDate, setStartDate] = useState(firstDayOfYear);
+  const [endDate, setEndDate] = useState(today);
+  // activeDates drives the query — only updates on Refresh click
+  const [activeDates, setActiveDates] = useState({ startDate: firstDayOfYear, endDate: today });
 
-  const {
-    watch,
-    setValue,
-    handleSubmit,
-    formState: { errors },
-    trigger,
-  } = useForm({
-    defaultValues: {
-      startDate: firstDayOfYear,
-      endDate: today,
-    },
+  const { data: analyticsData = [], isLoading: loader } = useFetchShortLinkTotalClicks(
+    token, shortUrl, activeDates.startDate, activeDates.endDate
+  );
+
+  const { data: deviceData = [] } = useFetchDeviceAnalytics(shortUrl, token);
+  const { data: browserData = [] } = useFetchBrowserAnalytics(shortUrl, token);
+  const { data: countryData = [] } = useFetchCountryAnalytics(shortUrl, token);
+
+  const devices = toArray(deviceData, "deviceType");
+  const browsers = toArray(browserData, "browser");
+  const countries = toArray(countryData, "country");
+
+  const mkDoughnut = (items, key) => ({
+    labels: items.map((d) => d[key] || "Unknown"),
+    datasets: [{
+      data: items.map((d) => d.count || 0),
+      backgroundColor: doughnutColors.map((c) => c[0]),
+      borderColor: doughnutColors.map((c) => c[1]),
+      borderWidth: 2,
+    }],
   });
 
-  const startDate = watch("startDate");
-  const endDate = watch("endDate");
-
-  const fetchAnalytics = async ({ startDate, endDate }) => {
-    setLoader(true);
-    try {
-      const { data } = await api.get(
-        `/api/urls/analytics/${shortUrl}?startDate=${dayjs(startDate).format(
-          "YYYY-MM-DD"
-        )}T00:00:00&endDate=${dayjs(endDate).format("YYYY-MM-DD")}T23:59:59`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: "Bearer " + token,
-          },
-        }
-      );
-
-      const sortedData = [...data].sort(
-        (a, b) => new Date(a.clickDate) - new Date(b.clickDate)
-      );
-      setAnalyticsData(sortedData);
-    } catch {
-      toast.error("Error fetching details");
-    } finally {
-      setLoader(false);
-    }
+  const countryChartData = {
+    labels: countries.slice(0, 10).map((c) => c.country || "Unknown"),
+    datasets: [{
+      label: "Clicks by Country",
+      data: countries.slice(0, 10).map((c) => c.count || 0),
+      backgroundColor: "rgba(6,182,212,0.8)",
+      borderColor: "rgba(6,182,212,1)",
+      borderWidth: 2,
+      borderRadius: 8,
+    }],
   };
 
-  useEffect(() => {
-    handleSubmit(fetchAnalytics)();
-  }, []);
+  const handleRefresh = () => setActiveDates({ startDate, endDate });
 
   return (
-    <div className="mt-3 p-6 rounded-xl border border-gray-200 shadow-sm transition-all duration-300 max-w-full font-roboto">
-      <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-6 tracking-wide">
-        Analytics Overview
-      </h2>
+    <div className={styles.analytics}>
+      {/* Header */}
+      <div className={styles.analytics__header}>
+        <div className={styles["analytics__header-icon"]}>
+          <FaChartLine />
+        </div>
+        <div>
+          <h3>Analytics Dashboard</h3>
+          <p>Comprehensive insights and performance metrics</p>
+        </div>
+      </div>
 
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <form
-          onSubmit={handleSubmit(fetchAnalytics)}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end mb-10"
-        >
-          <div className="flex flex-col">
-            <label className="font-semibold text-gray-700 mb-1">Start Date</label>
-
-            <DatePicker
+      {/* Date form */}
+      <div className={styles["analytics__date-form"]}>
+        <div className={styles["analytics__date-form-grid"]}>
+          <div>
+            <label>Start Date</label>
+            <input
+              type="date"
               value={startDate}
-              onChange={(value) => {
-                setValue("startDate", value);
-                trigger("endDate");
-              }}
-              maxDate={endDate}
-              slotProps={{
-                textField: {
-                  size: "small",
-                  fullWidth: true,
-                  error: Boolean(errors.startDate),
-                  helperText: errors.startDate?.message,
-                },
-              }}
+              max={endDate}
+              onChange={(e) => setStartDate(e.target.value)}
             />
           </div>
-
-          <div className="flex flex-col">
-            <label className="font-semibold text-gray-700 mb-1">End Date</label>
-
-            <DatePicker
+          <div>
+            <label>End Date</label>
+            <input
+              type="date"
               value={endDate}
-              onChange={(value) => {
-                setValue("endDate", value);
-                trigger("startDate");
-              }}
-              minDate={startDate}
-              maxDate={today}
-              slotProps={{
-                textField: {
-                  size: "small",
-                  fullWidth: true,
-                  error: Boolean(errors.endDate),
-                  helperText: errors.endDate?.message,
-                },
-              }}
+              min={startDate}
+              max={today}
+              onChange={(e) => setEndDate(e.target.value)}
             />
           </div>
-
-          <button
-            type="submit"
-            className="bg-purple-700 hover:bg-purple-800 text-white px-6 py-2 rounded-lg shadow-md transition-all w-full sm:w-auto font-semibold"
+          <motion.button
+            className={styles["analytics__date-form-btn"]}
+            onClick={handleRefresh}
+            disabled={loader}
+            whileHover={{ scale: loader ? 1 : 1.03 }}
+            whileTap={{ scale: loader ? 1 : 0.97 }}
           >
-            Refresh
-          </button>
-        </form>
-      </LocalizationProvider>
+            <FaSync style={{ animation: loader ? "spin 0.7s linear infinite" : "none" }} />
+            {loader ? "Loading..." : "Refresh"}
+          </motion.button>
+        </div>
+      </div>
 
+      {/* Content */}
       {loader ? (
-        <div className="flex justify-center items-center h-72">
-          <div className="flex flex-col items-center gap-2">
-            <Hourglass
-              visible={true}
-              height="50"
-              width="50"
-              ariaLabel="hourglass-loading"
-              colors={["#4f46e5", "#818cf8"]}
-            />
-            <p className="text-slate-700 font-medium">Loading analytics...</p>
-          </div>
+        <div className="loading-center">
+          <Hourglass height="56" width="56" colors={["#8b5cf6", "#a78bfa"]} />
+          <p>Loading analytics...</p>
         </div>
       ) : (
-        <div className="h-[26rem] relative rounded-xl overflow-hidden p-2 shadow-inner">
-          {analyticsData.length === 0 && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 backdrop-blur-xs rounded-xl">
-              <h1 className="text-slate-800 font-serif sm:text-2xl text-[20px] font-bold mb-1">
-                No Data For This Time Period
-              </h1>
-              <h3 className="sm:w-96 w-[90%] mx-auto text-center sm:text-lg text-sm text-slate-600">
-                Share your short link to start seeing engagement analytics.
-              </h3>
-            </div>
-          )}
+        <div className={styles.analytics__sections}>
 
-          <div className="h-full w-full animate-fadeIn">
-            <Graph graphData={analyticsData} />
+          {/* Click Timeline — empty state OR chart, never both */}
+          <div className={styles.analytics__section}>
+            <h4>Click Timeline</h4>
+            {analyticsData.length === 0 ? (
+              <div className={styles["analytics__empty-chart"]}>
+                <FaChartLine />
+                <p>No data for this period — try a different date range</p>
+              </div>
+            ) : (
+              <div className={styles["analytics__chart-wrap"]}>
+                <Graph graphData={analyticsData} />
+              </div>
+            )}
           </div>
+
+          {/* Device + Browser */}
+          <div className={styles.analytics__grid}>
+            {/* Devices */}
+            <motion.div
+              className={styles.analytics__section}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <h4>Device Distribution</h4>
+              {devices.length > 0 ? (
+                <>
+                  <div className={styles["analytics__doughnut-wrap"]}>
+                    <Doughnut data={mkDoughnut(devices, "deviceType")} options={doughnutOptions} />
+                  </div>
+                  <div>
+                    {devices.map((d, i) => (
+                      <div key={i} className={styles["analytics__list-item"]}>
+                        <div className={styles["analytics__list-item-left"]}>
+                          {getDeviceIcon(d.deviceType || d.device)}
+                          {d.deviceType || d.device || "Unknown"}
+                        </div>
+                        <span className={styles["analytics__list-item-count"]}>{d.count || 0} clicks</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className={styles["analytics__empty-chart"]}>
+                  <FaDesktop />
+                  <p>No device data available</p>
+                </div>
+              )}
+            </motion.div>
+
+            {/* Browsers */}
+            <motion.div
+              className={styles.analytics__section}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <h4>Browser Distribution</h4>
+              {browsers.length > 0 ? (
+                <>
+                  <div className={styles["analytics__doughnut-wrap"]}>
+                    <Doughnut data={mkDoughnut(browsers, "browser")} options={doughnutOptions} />
+                  </div>
+                  <div>
+                    {browsers.map((b, i) => (
+                      <div key={i} className={styles["analytics__list-item"]}>
+                        <div className={styles["analytics__list-item-left"]}>
+                          {getBrowserIcon(b.browser || b.browserName)}
+                          {b.browser || b.browserName || "Unknown"}
+                        </div>
+                        <span className={styles["analytics__list-item-count"]}>{b.count || 0} clicks</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className={styles["analytics__empty-chart"]}>
+                  <FaGlobe />
+                  <p>No browser data available</p>
+                </div>
+              )}
+            </motion.div>
+          </div>
+
+          {/* Country */}
+          <motion.div
+            className={styles.analytics__section}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <h4>Geographic Distribution</h4>
+            {countries.length > 0 ? (
+              <>
+                <div className={styles["analytics__bar-wrap"]}>
+                  <Bar data={countryChartData} options={barOptions} />
+                </div>
+                <div className={styles["analytics__geo-grid"]}>
+                  {countries.slice(0, 12).map((c, i) => (
+                    <div key={i} className={styles["analytics__geo-item"]}>
+                      <div className={styles["analytics__geo-item-left"]}>
+                        <span>{flagEmoji(c.country || c.countryCode)}</span>
+                        <span>{c.country || c.countryName || "Unknown"}</span>
+                      </div>
+                      <span className={styles["analytics__geo-item-count"]}>{c.count || 0}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className={styles["analytics__empty-chart"]}>
+                <FaGlobe />
+                <p>No geographic data available</p>
+              </div>
+            )}
+          </motion.div>
         </div>
       )}
     </div>

@@ -1,111 +1,111 @@
-import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { IoIosMenu } from "react-icons/io";
-import { RxCross2 } from "react-icons/rx";
-import { useStoreContext } from "../contextApi/ContextApi";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useDispatch, useSelector } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
+import { clearTokens, selectIsLoggedIn } from "../store/authSlice";
+import { logoutApi } from "../api/auth.api";
+import styles from "./Navbar.module.scss";
 
 const Navbar = () => {
-  const navigate = useNavigate();
-  const { token, setToken } = useStoreContext();
-  const path = useLocation().pathname;
-  const [navbarOpen, setNavbarOpen] = useState(false);
+  const navigate    = useNavigate();
+  const dispatch    = useDispatch();
+  const queryClient = useQueryClient();
+  const isLoggedIn  = useSelector(selectIsLoggedIn);
+  const [isOpen, setIsOpen] = useState(false);
 
-  const onLogOutHandler = () => {
-    setToken(null);
-    localStorage.removeItem("JWT_TOKEN");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await logoutApi();
+    } catch {
+      // Even if the server call fails, clear frontend state
+    } finally {
+      dispatch(clearTokens());
+      queryClient.clear();
+      navigate("/");
+      setIsOpen(false);
+    }
   };
 
   return (
-    <div className="h-16 bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 z-50 flex items-center justify-center sticky top-0 shadow-sm">
-      <div className="lg:px-14 sm:px-8 px-4 w-full flex justify-between items-center max-w-[1920px]">
-        {/* LOGO */}
-        <Link to="/">
-          <img
-            src="/images/image1.png"
-            alt="BitLeap Logo"
-            className="mx-auto lg:mx-0 w-28 md:w-32"
-          />
-        </Link>
+    <motion.nav
+      className={styles.navbar}
+      initial={{ y: -80 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
+      <div className={styles.navbar__inner}>
+        <Link to="/" className={styles.navbar__logo}>BitLeap</Link>
 
-        {/* MENU */}
-        <ul
-          className={`
-            flex sm:gap-10 gap-4 sm:items-center 
-            text-gray-700 sm:static absolute left-0 top-[64px]
-            sm:shadow-none shadow-lg
-            sm:h-fit ${navbarOpen ? "h-fit pb-5" : "h-0 overflow-hidden"}
-            transition-all duration-200
-            sm:bg-transparent bg-white 
-            sm:w-fit w-full 
-            sm:flex-row flex-col px-6 sm:px-0
-          `}
-        >
-          {/* HOME */}
-          <li className="font-medium text-sm sm:text-base lg:text-lg montserrat hover:text-gray-600 transition-all">
-            <Link
-              to="/"
-              className={`${path === "/" ? "font-semibold text-purple-600" : ""}`}
-            >
-              Home
-            </Link>
-          </li>
+        {/* Desktop */}
+        <div className={styles.navbar__desktop}>
+          <Link to="/about" className={styles.navbar__link}>About</Link>
 
-          {/* ABOUT */}
-          <li className="font-medium text-sm sm:text-base lg:text-lg montserrat hover:text-gray-600 transition-all">
-            <Link
-              to="/about"
-              className={`${path === "/about" ? "font-semibold text-purple-600" : ""}`}
-            >
-              About
-            </Link>
-          </li>
-
-          {/* DASHBOARD */}
-          {token && (
-            <li className="font-medium text-sm sm:text-base lg:text-lg montserrat hover:text-gray-600 transition-all">
-              <Link
-                to="/dashboard"
-                className={`${path === "/dashboard" ? "font-semibold text-purple-600" : ""}`}
+          {isLoggedIn ? (
+            <>
+              <motion.button
+                className={styles["navbar__btn--dashboard"]}
+                onClick={() => navigate("/dashboard")}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
               >
                 Dashboard
-              </Link>
-            </li>
-          )}
-
-          {/* SIGN UP */}
-          {!token && (
-            <Link to="/register" className="w-fit">
-              <li className="mt-2 sm:mt-0 bg-white text-purple-700 font-semibold px-5 py-2 rounded-md shadow-md hover:bg-gray-100 transition-all cursor-pointer text-center text-xs sm:text-sm lg:text-base">
-                Sign Up
-              </li>
-            </Link>
-          )}
-
-          {/* LOGOUT */}
-          {token && (
-            <button
-              onClick={onLogOutHandler}
-              className="mt-2 sm:mt-0 bg-rose-700 text-white font-semibold px-5 py-2 rounded-md shadow-md hover:bg-rose-800 transition-all cursor-pointer text-center text-xs sm:text-sm lg:text-base"
-            >
-              Log Out
-            </button>
-          )}
-        </ul>
-
-        {/* MOBILE MENU BUTTON */}
-        <button
-          onClick={() => setNavbarOpen(!navbarOpen)}
-          className="sm:hidden flex items-center"
-        >
-          {navbarOpen ? (
-            <RxCross2 className="text-gray-700 text-3xl sm:text-3xl lg:text-4xl" />
+              </motion.button>
+              <motion.button
+                className={styles["navbar__btn--logout"]}
+                onClick={handleLogout}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+              >
+                Logout
+              </motion.button>
+            </>
           ) : (
-            <IoIosMenu className="text-gray-700 text-3xl sm:text-3xl lg:text-4xl" />
+            <motion.button
+              className={styles["navbar__btn--primary"]}
+              onClick={() => navigate("/login")}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+            >
+              Get Started
+            </motion.button>
           )}
+        </div>
+
+        {/* Hamburger */}
+        <button
+          className={styles.navbar__hamburger}
+          onClick={() => setIsOpen((p) => !p)}
+          aria-label="Toggle menu"
+        >
+          {isOpen ? "✕" : "☰"}
         </button>
       </div>
-    </div>
+
+      {/* Mobile menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            className={styles.navbar__mobile}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            style={{ paddingLeft: 16, paddingRight: 16 }}
+          >
+            <Link to="/about" className={styles.navbar__link} onClick={() => setIsOpen(false)}>About</Link>
+
+            {isLoggedIn ? (
+              <>
+                <button className={styles["navbar__btn--dashboard"]} onClick={() => { navigate("/dashboard"); setIsOpen(false); }}>Dashboard</button>
+                <button className={styles["navbar__btn--logout"]}    onClick={handleLogout}>Logout</button>
+              </>
+            ) : (
+              <button className={styles["navbar__btn--primary"]} onClick={() => { navigate("/login"); setIsOpen(false); }}>Get Started</button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.nav>
   );
 };
 

@@ -1,0 +1,859 @@
+@use '../styles/variables' as *;
+
+// ── Dashboard layout ──────────────────────────────────────────────────────────
+.dashboard {
+  min-height: calc(100vh - #{$navbar-height});
+  position: relative;
+  overflow: hidden;
+  font-family: $font-primary;
+
+  &__inner {
+    @include page-wrap;
+    padding-top: 36px;
+    padding-bottom: 64px;
+  }
+
+  &__header {
+    margin-bottom: 28px;
+    position: relative;
+    z-index: 1;
+
+    &-row {
+      @include flex-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: clamp(26px, 4vw, 36px);
+      font-weight: 900;
+      color: $text-primary;
+      letter-spacing: -0.5px;
+    }
+
+    p {
+      color: $text-muted;
+      margin-top: 4px;
+      font-size: 14px;
+    }
+  }
+
+  &__create_btn {
+    @include gradient-btn;
+    padding: 11px 20px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  &__period {
+    @include dark-card;
+    padding: 20px 24px;
+    position: relative;
+    z-index: 1;
+
+    &-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      color: $text-primary;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    &-icon { color: $cyan-400; }
+
+    &-fields {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+
+      @include respond-to(sm) { grid-template-columns: 1fr 1fr; }
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: $text-muted;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="date"] {
+      @include dark-input;
+      cursor: pointer;
+      color-scheme: dark;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__section {
+    position: relative;
+    z-index: 1;
+
+    &-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: $text-primary;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+
+      &::before {
+        content: '';
+        display: inline-block;
+        width: 3px;
+        height: 16px;
+        border-radius: 2px;
+        background: $gradient-primary;
+      }
+    }
+  }
+
+  // ── Chart card ─────────────────────────────────────────────────────────
+  &__chart-card {
+    @include dark-card;
+    padding: 24px;
+
+    &-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: $text-primary;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+
+      &::before {
+        content: '';
+        display: inline-block;
+        width: 3px;
+        height: 16px;
+        border-radius: 2px;
+        background: $gradient-primary;
+      }
+    }
+
+    &-body { height: 360px; }
+
+    &-empty {
+      padding: 52px 24px;
+      text-align: center;
+      @include flex-center;
+      flex-direction: column;
+      gap: 12px;
+      background: rgba($dark-700, 0.4);
+      border-radius: $radius-xl;
+      border: 1px dashed $border-subtle;
+
+      h3 {
+        font-size: 17px;
+        font-weight: 800;
+        color: $text-primary;
+      }
+
+      p {
+        font-size: 13px;
+        color: $text-muted;
+        max-width: 300px;
+        line-height: 1.6;
+      }
+    }
+
+    &-empty-icon {
+      display: inline-flex;
+      padding: 16px;
+      border-radius: 50%;
+      background: rgba($cyan-500, 0.1);
+      border: 1px solid rgba($cyan-500, 0.2);
+      color: $cyan-400;
+      font-size: 26px;
+    }
+  }
+
+  // ── Empty states ───────────────────────────────────────────────────────
+  &__empty {
+    @include dark-card;
+    padding: 60px 32px;
+    text-align: center;
+
+    &-icon {
+      display: inline-flex;
+      padding: 22px;
+      border-radius: 50%;
+      background: rgba($cyan-500, 0.1);
+      border: 1px solid rgba($cyan-500, 0.2);
+      color: $cyan-400;
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      font-size: 20px;
+      font-weight: 800;
+      color: $text-primary;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: $text-muted;
+      margin-bottom: 24px;
+      max-width: 380px;
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    button {
+      @include gradient-btn;
+      padding: 12px 28px;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+
+  &__no_data {
+    @include flex-center;
+    flex-direction: column;
+    text-align: center;
+    padding: 48px 24px;
+    gap: 12px;
+    background: rgba($dark-700, 0.4);
+    border-radius: $radius-xl;
+    border: 1px dashed $border-subtle;
+
+    &-icon {
+      display: inline-flex;
+      padding: 14px;
+      border-radius: 50%;
+      background: rgba($cyan-500, 0.1);
+      border: 1px solid rgba($cyan-500, 0.2);
+      color: $cyan-400;
+      font-size: 26px;
+      margin-bottom: 4px;
+    }
+
+    h3 { font-size: 16px; font-weight: 800; color: $text-primary; }
+    p  { font-size: 13px; color: $text-muted; max-width: 280px; line-height: 1.6; }
+  }
+}
+
+// ── URL list ──────────────────────────────────────────────────────────────────
+.url-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+// ── Shorten item card ─────────────────────────────────────────────────────────
+.shorten-item {
+  @include dark-card;
+  overflow: hidden;
+  transition: all $transition-slow;
+
+  &:hover {
+    border-color: $border-glow;
+    box-shadow: $shadow-lg, $shadow-glow-cyan;
+    transform: translateY(-3px);
+  }
+
+  &__bar {
+    height: 3px;
+    background: $gradient-primary;
+  }
+
+  &__body { padding: 20px; @include respond-to(sm) { padding: 22px 24px; } }
+
+  &__layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    @include respond-to(lg) { flex-direction: row; justify-content: space-between; align-items: flex-start; }
+  }
+
+  &__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+
+  &__field-label {
+    font-size: 10px;
+    font-weight: 800;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+
+  &__short-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    a {
+      font-size: clamp(15px, 2.5vw, 20px);
+      font-weight: 900;
+      @include gradient-text($gradient-cyan);
+      word-break: break-all;
+      letter-spacing: -0.3px;
+      &:hover { opacity: 0.8; }
+    }
+
+    svg { color: $cyan-400; font-size: 12px; opacity: 0; transition: opacity $transition-fast; }
+    &:hover svg { opacity: 1; }
+  }
+
+  &__original {
+    color: $text-muted;
+    word-break: break-all;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  &__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  &__stat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    &-icon {
+      padding: 8px;
+      border-radius: $radius-md;
+
+      &--green  { background: rgba($emerald-500, 0.12); color: $emerald-400; }
+      &--violet { background: rgba($violet-500, 0.12); color: $violet-400; }
+
+      svg { font-size: 16px; }
+    }
+
+    &-value { font-size: 20px; font-weight: 900; color: $emerald-400; }
+    &-label { font-size: 11px; color: $text-muted; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    &-date  { font-size: 13px; font-weight: 700; color: $text-secondary; }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+
+    @include respond-to(lg) { flex-direction: column; justify-content: center; }
+  }
+
+  &__btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: $radius-lg;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    transition: all $transition-base;
+    min-width: 100px;
+    font-family: $font-primary;
+    white-space: nowrap;
+
+    @include respond-to(lg) { flex: none; min-width: 120px; }
+
+    &--copy {
+      background: rgba($cyan-500, 0.12);
+      color: $cyan-400;
+      border: 1px solid rgba($cyan-500, 0.25);
+      &:hover { background: rgba($cyan-500, 0.22); border-color: rgba($cyan-400, 0.4); transform: translateY(-1px); }
+    }
+
+    &--copied {
+      background: rgba($emerald-500, 0.15);
+      color: $emerald-400;
+      border: 1px solid rgba($emerald-500, 0.3);
+    }
+
+    &--analytics {
+      background: rgba($violet-500, 0.12);
+      color: $violet-400;
+      border: 1px solid rgba($violet-500, 0.25);
+      &:hover { background: rgba($violet-500, 0.22); border-color: rgba($violet-400, 0.4); transform: translateY(-1px); }
+
+      &--active {
+        background: rgba($violet-500, 0.25);
+        color: $violet-300;
+        border-color: rgba($violet-400, 0.45);
+      }
+    }
+  }
+
+  &__analytics {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid $border-subtle;
+  }
+}
+
+// ── Modal overlay ─────────────────────────────────────────────────────────────
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba($dark-950, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 200;
+  @include flex-center;
+  padding: 16px;
+}
+
+// ── Modal card ────────────────────────────────────────────────────────────────
+.modal {
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+
+  &__glow {
+    position: absolute;
+    inset: -4px;
+    background: $gradient-primary;
+    border-radius: 32px;
+    filter: blur(20px);
+    opacity: 0.2;
+  }
+
+  &__inner {
+    position: relative;
+    @include dark-card;
+    overflow: hidden;
+  }
+
+  &__header {
+    background: linear-gradient(145deg, rgba($dark-700, 0.9), rgba($dark-600, 0.7));
+    padding: 32px 28px 28px;
+    border-bottom: 1px solid $border-subtle;
+    text-align: center;
+    position: relative;
+  }
+
+  &__close {
+    position: absolute;
+    top: 12px; right: 12px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid $border-subtle;
+    background: rgba($white, 0.05);
+    cursor: pointer;
+    @include flex-center;
+    font-size: 16px;
+    color: $text-muted;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: rgba($white, 0.1);
+      color: $text-primary;
+      border-color: $border-glow;
+    }
+  }
+
+  &__icon_wrap {
+    display: inline-flex;
+    padding: 16px;
+    border-radius: $radius-xl;
+    background: $gradient-primary;
+    color: $white;
+    font-size: 26px;
+    margin-bottom: 14px;
+    box-shadow: $shadow-glow-blue;
+  }
+
+  &__title {
+    font-size: 24px;
+    font-weight: 900;
+    @include gradient-text($gradient-primary);
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+
+  &__subtitle { font-size: 13px; color: $text-muted; }
+
+  &__body { padding: 24px 28px 28px; }
+
+  &__field-hint {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: $text-muted;
+    svg { color: $cyan-400; }
+  }
+
+  &__features {
+    background: rgba($dark-700, 0.5);
+    border: 1px solid $border-subtle;
+    border-radius: $radius-md;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+
+    p { font-size: 12px; font-weight: 700; color: $text-muted; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      li {
+        font-size: 12px;
+        color: $text-muted;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        span { color: $cyan-400; font-weight: 700; }
+      }
+    }
+  }
+
+  &__submit {
+    @include gradient-btn;
+    width: 100%;
+    padding: 14px;
+    font-size: 14px;
+    @include flex-center;
+    gap: 8px;
+  }
+}
+
+// ── Analytics panel ───────────────────────────────────────────────────────────
+.analytics {
+  background: rgba($dark-800, 0.6);
+  border-radius: $radius-xl;
+  padding: 20px;
+  border: 1px solid $border-subtle;
+  font-family: $font-primary;
+
+  @include respond-to(sm) { padding: 24px; }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+
+    &-icon {
+      padding: 10px;
+      border-radius: $radius-md;
+      background: rgba($violet-500, 0.12);
+      border: 1px solid rgba($violet-500, 0.2);
+      color: $violet-400;
+      font-size: 16px;
+      @include flex-center;
+    }
+
+    h3 { font-size: 17px; font-weight: 900; color: $text-primary; }
+    p  { font-size: 12px; color: $text-muted; margin-top: 2px; }
+  }
+
+  &__date-form {
+    background: rgba($dark-700, 0.5);
+    border: 1px solid $border-subtle;
+    border-radius: $radius-xl;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+
+    &-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+
+      @include respond-to(sm)  { grid-template-columns: 1fr 1fr; }
+      @include respond-to(lg)  { grid-template-columns: 1fr 1fr auto; }
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: $text-muted;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="date"] {
+      @include dark-input;
+      color-scheme: dark;
+      cursor: pointer;
+    }
+
+    &-btn {
+      background: rgba($violet-500, 0.12);
+      color: $violet-400;
+      border: 1px solid rgba($violet-500, 0.25);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 18px;
+      border-radius: $radius-md;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all $transition-base;
+      font-family: $font-primary;
+      align-self: flex-end;
+      white-space: nowrap;
+
+      &:hover { background: rgba($violet-500, 0.22); border-color: rgba($violet-400, 0.4); transform: translateY(-1px); }
+    }
+  }
+
+  &__sections { display: flex; flex-direction: column; gap: 16px; }
+
+  &__section {
+    background: rgba($dark-700, 0.5);
+    border: 1px solid $border-subtle;
+    border-radius: $radius-xl;
+    padding: 20px;
+
+    h4 {
+      font-size: 13px;
+      font-weight: 800;
+      color: $text-primary;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+
+      &::before {
+        content: '';
+        display: inline-block;
+        width: 3px;
+        height: 13px;
+        border-radius: 2px;
+        background: $gradient-primary;
+      }
+    }
+  }
+
+  &__chart-wrap   { height: 300px; }
+  &__doughnut-wrap { height: 240px; margin-bottom: 14px; }
+  &__bar-wrap      { height: 300px; margin-bottom: 14px; }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    @include respond-to(md) { grid-template-columns: 1fr 1fr; }
+  }
+
+  &__geo-grid {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 1fr;
+    @include respond-to(sm) { grid-template-columns: 1fr 1fr; }
+    @include respond-to(lg) { grid-template-columns: 1fr 1fr 1fr; }
+  }
+
+  &__list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: rgba($dark-800, 0.5);
+    border-radius: $radius-md;
+    border: 1px solid $border-subtle;
+    margin-top: 6px;
+
+    &-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: $text-secondary;
+      svg { font-size: 16px; }
+    }
+
+    &-count {
+      font-size: 13px;
+      font-weight: 700;
+      color: $text-primary;
+    }
+  }
+
+  &__geo-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: rgba($dark-800, 0.5);
+    border: 1px solid $border-subtle;
+    border-radius: $radius-md;
+
+    &-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: $text-secondary;
+      min-width: 0;
+
+      span:first-child { font-size: 20px; flex-shrink: 0; }
+      span:last-child  { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    }
+
+    &-count {
+      font-size: 13px;
+      font-weight: 700;
+      color: $cyan-400;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+  }
+
+  &__empty-chart {
+    min-height: 200px;
+    @include flex-center;
+    flex-direction: column;
+    text-align: center;
+    color: $text-muted;
+    gap: 10px;
+    svg { font-size: 36px; opacity: 0.3; }
+    p   { font-size: 13px; line-height: 1.5; }
+  }
+}
+
+// ── Footer ────────────────────────────────────────────────────────────────────
+.footer {
+  position: relative;
+  background: rgba($dark-900, 0.95);
+  border-top: 1px solid $border-subtle;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: $gradient-primary;
+    opacity: 0.35;
+  }
+
+  &__inner {
+    @include page-wrap;
+    padding-top: 24px;
+    padding-bottom: 24px;
+    @include flex-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__logo {
+    font-size: 20px;
+    font-weight: 900;
+    @include gradient-text($gradient-primary);
+  }
+
+  &__copy {
+    font-size: 13px;
+    color: $text-muted;
+    text-align: center;
+  }
+
+  &__github {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: $text-muted;
+
+    a {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border: 1px solid $border-subtle;
+      border-radius: $radius-lg;
+      background: rgba($white, 0.04);
+      color: $text-secondary;
+      transition: all $transition-base;
+      font-weight: 600;
+      font-size: 13px;
+
+      &:hover {
+        border-color: $border-glow;
+        background: rgba($white, 0.08);
+        color: $text-primary;
+        transform: translateY(-1px);
+      }
+
+      svg { font-size: 16px; }
+    }
+  }
+}
+
+// ── Redirect page ─────────────────────────────────────────────────────────────
+.redirect {
+  @include flex-center;
+  flex-direction: column;
+  gap: 20px;
+  min-height: calc(100vh - #{$navbar-height});
+  padding: 24px;
+  text-align: center;
+
+  img { width: min(55%, 180px); object-fit: contain; opacity: 0.85; }
+  p   { color: $text-secondary; font-size: 15px; max-width: 380px; }
+}
+
+// ── Error page ────────────────────────────────────────────────────────────────
+.error-page {
+  @include flex-center;
+  flex-direction: column;
+  gap: 14px;
+  min-height: calc(100vh - #{$navbar-height});
+  padding: 24px;
+  text-align: center;
+
+  h1 { font-size: 80px; font-weight: 900; @include gradient-text($gradient-primary); line-height: 1; }
+  h2 { font-size: 22px; font-weight: 800; color: $text-primary; }
+  p  { color: $text-secondary; font-size: 14px; }
+
+  a {
+    margin-top: 8px;
+    display: inline-flex;
+    padding: 12px 28px;
+    border-radius: $radius-xl;
+    @include gradient-btn;
+    font-size: 14px;
+  }
+}

@@ -1,9 +1,9 @@
-import React from "react";
-import { useStoreContext } from "./contextApi/ContextApi";
+import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
+import { selectAccessToken } from "./store/authSlice";
 
 const PrivateRoute = ({ children, publicPage }) => {
-  const { token } = useStoreContext();
+  const token = useSelector(selectAccessToken);
   if (publicPage) {
     return token ? <Navigate to="/dashboard" /> : children;
   }

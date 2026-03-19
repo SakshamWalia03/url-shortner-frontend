@@ -1,0 +1,242 @@
+// =============================================
+// DARK THEME DESIGN TOKENS
+// =============================================
+
+// Dark background layers
+$dark-950: #020408;
+$dark-900: #080d14;
+$dark-850: #0c1220;
+$dark-800: #101828;
+$dark-700: #1a2540;
+$dark-600: #243058;
+$dark-500: #2e3c6e;
+
+// Accent colors
+$cyan-300: #67e8f9;
+$cyan-400: #22d3ee;
+$cyan-500: #06b6d4;
+$cyan-600: #0891b2;
+$blue-400: #60a5fa;
+$blue-500: #3b82f6;
+$blue-600: #2563eb;
+$violet-300: #c4b5fd;
+$violet-400: #a78bfa;
+$violet-500: #8b5cf6;
+$violet-600: #7c3aed;
+$purple-500: #a855f7;
+$emerald-400: #34d399;
+$emerald-500: #10b981;
+$emerald-600: #059669;
+$rose-400: #fb7185;
+$rose-500: #f43f5e;
+$amber-400: #fbbf24;
+$orange-500: #f97316;
+
+// Text colors (dark theme)
+$text-primary: #f0f4ff;
+$text-secondary: #94a3b8;
+$text-muted: #475569;
+$text-accent: $cyan-400;
+
+// Border colors (dark theme)
+$border-subtle: rgba(#60a5fa, 0.12);
+$border-glow: rgba(#22d3ee, 0.25);
+$border-card: rgba(#60a5fa, 0.15);
+
+// Surface colors (dark theme glass)
+$surface-1: rgba(#101828, 0.8);
+$surface-2: rgba(#1a2540, 0.7);
+$surface-3: rgba(#243058, 0.5);
+
+// Legacy light refs (for backward compat)
+$slate-50: #f8fafc;
+$slate-100: #f1f5f9;
+$slate-200: #e2e8f0;
+$slate-300: #cbd5e1;
+$slate-400: #94a3b8;
+$slate-500: #64748b;
+$slate-600: #475569;
+$slate-700: #334155;
+$slate-800: #1e293b;
+$slate-900: #0f172a;
+$white: #ffffff;
+$red-500: #ef4444;
+
+// Gradients
+$gradient-primary: linear-gradient(135deg, $cyan-500, $blue-500, $violet-500);
+$gradient-primary-hover: linear-gradient(135deg, $violet-500, $blue-500, $cyan-500);
+$gradient-green: linear-gradient(135deg, $emerald-500, $emerald-600);
+$gradient-cyan: linear-gradient(135deg, $cyan-400, $blue-500);
+$gradient-violet: linear-gradient(135deg, $violet-400, $purple-500);
+$gradient-dark-card: linear-gradient(145deg, rgba($dark-800, 0.9), rgba($dark-700, 0.7));
+
+// Typography
+$font-primary: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+// Layout
+$navbar-height: 64px;
+$max-content-width: 1400px;  // content centered beyond this
+
+// Border radius
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-xl: 20px;
+$radius-2xl: 24px;
+$radius-full: 9999px;
+
+// Shadows (dark theme — glow-based)
+$shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+$shadow-md: 0 4px 20px rgba(0,0,0,0.5);
+$shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
+$shadow-xl: 0 20px 60px rgba(0,0,0,0.7);
+$shadow-glow-cyan: 0 0 24px rgba($cyan-500, 0.25);
+$shadow-glow-blue: 0 8px 32px rgba($blue-500, 0.3);
+$shadow-glow-violet: 0 8px 32px rgba($violet-500, 0.3);
+
+// Transitions
+$transition-fast: 0.15s ease;
+$transition-base: 0.25s ease;
+$transition-slow: 0.4s ease;
+
+// Breakpoints
+$bp-xs: 480px;
+$bp-sm: 640px;
+$bp-md: 768px;
+$bp-lg: 1024px;
+$bp-xl: 1280px;
+$bp-2xl: 1536px;
+$bp-3xl: 1800px;   // centering kicks in above this
+
+// =============================================
+// MIXINS
+// =============================================
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin gradient-text($gradient: $gradient-primary) {
+  background: $gradient;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// Dark glass card
+@mixin dark-card {
+  background: $gradient-dark-card;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid $border-card;
+  border-radius: $radius-2xl;
+  box-shadow: $shadow-md, inset 0 1px 0 rgba($white, 0.05);
+}
+
+// Glow card on hover
+@mixin dark-card-hover {
+  &:hover {
+    border-color: $border-glow;
+    box-shadow: $shadow-lg, $shadow-glow-cyan;
+    transform: translateY(-4px);
+  }
+}
+
+@mixin gradient-btn {
+  background: $gradient-primary;
+  color: $white;
+  border: none;
+  cursor: pointer;
+  font-family: $font-primary;
+  font-weight: 700;
+  border-radius: $radius-xl;
+  transition: all $transition-base;
+  box-shadow: $shadow-glow-blue;
+
+  &:hover:not(:disabled) {
+    background: $gradient-primary-hover;
+    box-shadow: 0 12px 40px rgba($blue-500, 0.5);
+    transform: translateY(-2px);
+  }
+  &:active:not(:disabled) { transform: translateY(0); }
+  &:disabled {
+    background: linear-gradient(135deg, $dark-600, $dark-500);
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.6;
+  }
+}
+
+// Centered page wrapper — content stops growing past $max-content-width
+@mixin page-wrap {
+  width: 100%;
+  max-width: $max-content-width;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+
+  @media (min-width: $bp-sm)  { padding-left: 24px; padding-right: 24px; }
+  @media (min-width: $bp-md)  { padding-left: 32px; padding-right: 32px; }
+  @media (min-width: $bp-lg)  { padding-left: 48px; padding-right: 48px; }
+  @media (min-width: $bp-xl)  { padding-left: 64px; padding-right: 64px; }
+  @media (min-width: $bp-3xl) { padding-left: 80px; padding-right: 80px; }
+}
+
+@mixin respond-to($bp) {
+  @if $bp == xs  { @media (min-width: $bp-xs)  { @content; } }
+  @else if $bp == sm  { @media (min-width: $bp-sm)  { @content; } }
+  @else if $bp == md  { @media (min-width: $bp-md)  { @content; } }
+  @else if $bp == lg  { @media (min-width: $bp-lg)  { @content; } }
+  @else if $bp == xl  { @media (min-width: $bp-xl)  { @content; } }
+  @else if $bp == 2xl { @media (min-width: $bp-2xl) { @content; } }
+  @else if $bp == 3xl { @media (min-width: $bp-3xl) { @content; } }
+}
+
+// Dark input field
+@mixin dark-input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: $radius-md;
+  border: 1.5px solid $border-card;
+  background: rgba($dark-800, 0.8);
+  color: $text-primary;
+  font-size: 14px;
+  font-family: $font-primary;
+  outline: none;
+  transition: border-color $transition-fast, box-shadow $transition-fast;
+
+  &::placeholder { color: $text-muted; }
+
+  &:focus {
+    border-color: $cyan-500;
+    box-shadow: 0 0 0 3px rgba($cyan-500, 0.15);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.08); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}

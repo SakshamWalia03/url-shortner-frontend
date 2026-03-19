@@ -1,150 +1,140 @@
 import { useState } from "react";
-import { useStoreContext } from "../../contextApi/ContextApi";
+import { motion } from "framer-motion";
+import { useSelector } from "react-redux";
+import { selectAccessToken } from "../../store/authSlice";
 import { useFetchMyShortUrls, useFetchTotalClicks } from "../../hooks/useQuery";
 import Graph from "./Graph";
 import ShortenPopUp from "./ShortenPopUp";
 import ShortenUrlList from "./ShortenUrlList";
-import { FaLink } from "react-icons/fa";
-import { Loader2 } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { FaPlus, FaChartLine, FaLink } from "react-icons/fa";
+import { TailSpin } from "react-loader-spinner";
 import { toast } from "react-hot-toast";
-
-// MUI Components
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import styles from "../Dashboard.module.scss";
 
 const DashboardLayout = () => {
-  const { token } = useStoreContext();
+  const token = useSelector(selectAccessToken);
   const [shortenPopUp, setShortenPopUp] = useState(false);
-
-  // AUTOFILL DATES
   const currentYear = new Date().getFullYear();
-  const defaultStartDate = dayjs(`${currentYear}-01-01`);
-  const defaultEndDate = dayjs();
-
-  const {
-    control,
-    register,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      startDate: defaultStartDate,
-      endDate: defaultEndDate,
-    },
-  });
-
-  const startDate = watch("startDate");
-  const endDate = watch("endDate");
-
-  function onError() {
-    toast.error("Error fetching details");
-  }
-
-  const { isLoading, data: myShortenUrls, refetch } =
-    useFetchMyShortUrls(token, onError);
-
-  const {
-    isLoading: loader,
-    data: totalClicks,
-    refetch: refetchClicks,
-  } = useFetchTotalClicks(
-    token,
-    dayjs(startDate).format("YYYY-MM-DD"),
-    dayjs(endDate).format("YYYY-MM-DD"),
-    onError
-  );
+  const [startDate, setStartDate] = useState(`${currentYear}-01-01`);
+  const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const onError = () => toast.error("Error fetching details");
+  const { isLoading, data: myShortenUrls = [], refetch } = useFetchMyShortUrls(token, onError);
+  const { isLoading: loader, data: totalClicks = [] } = useFetchTotalClicks(token, startDate, endDate, onError);
 
   return (
-    <div className="lg:px-14 sm:px-8 px-4 min-h-[calc(100vh-64px)]">
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <form className="flex flex-col sm:flex-row justify-center gap-4 pt-8">
+    <div className={styles.dashboard}>
+      <div className="blobs">
+        <div className="blob blob--cyan"   style={{ top: "-80px", left: "-100px" }} />
+        <div className="blob blob--violet" style={{ bottom: 0, right: "-80px" }} />
+      </div>
 
-          {/* START DATE PICKER */}
-          <DatePicker
-            label="Start Date"
-            value={startDate}
-            onChange={(newValue) => setValue("startDate", newValue)}
-            maxDate={endDate} // Prevent selecting after endDate
-            slotProps={{
-              textField: {
-                size: "small",
-                error: false,
-              },
-            }}
-          />
-
-          {/* END DATE PICKER */}
-          <DatePicker
-            label="End Date"
-            value={endDate}
-            onChange={(newValue) => setValue("endDate", newValue)}
-            minDate={startDate} // BLOCKS ALL DATES BEFORE START DATE
-            slotProps={{
-              textField: {
-                size: "small",
-                error: false,
-              },
-            }}
-          />
-
-        </form>
-      </LocalizationProvider>
-
-      {loader ? (
-        <div className="flex justify-center items-center h-[calc(100vh-64px)]">
-          <Loader2 className="animate-spin text-blue-500" size={50} />
-        </div>
-      ) : (
-        <div className="lg:w-[90%] w-full mx-auto py-16">
-          <div className="h-96 relative">
-            {totalClicks?.length === 0 && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 bg-white/80 rounded-xl">
-                <h1 className="text-slate-800 font-serif sm:text-2xl text-[18px] font-bold mb-1">
-                  No Data For This Time Period
-                </h1>
-                <h3 className="sm:w-96 w-[90%] text-center sm:text-lg text-sm text-slate-600">
-                  Share your short link to view analytics
-                </h3>
-              </div>
-            )}
-            <Graph graphData={totalClicks} />
-          </div>
-
-          <div className="py-5 sm:text-end text-center">
-            <button
-              className="btn-gradient px-4 py-2 rounded-md text-white font-roboto"
+      <div className={styles.dashboard__inner}>
+        {/* Header */}
+        <motion.div
+          className={styles.dashboard__header}
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+        >
+          <div className={styles["dashboard__header-row"]}>
+            <div>
+              <h1>Dashboard</h1>
+              <p>Manage and track your shortened links</p>
+            </div>
+            <motion.button
+              className={styles.dashboard__create_btn}
               onClick={() => setShortenPopUp(true)}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
             >
-              Create a New Short URL
-            </button>
+              <FaPlus /> Create Short URL
+            </motion.button>
           </div>
 
-          <div>
-            {!isLoading && myShortenUrls.length === 0 ? (
-              <div className="flex justify-center pt-16">
-                <div className="flex gap-2 items-center justify-center py-6 sm:px-8 px-5 rounded-md shadow-lg bg-gray-50">
-                  <h1 className="text-slate-800 font-montserrat sm:text-[18px] text-[14px] font-semibold">
-                    You haven't created any short link yet
-                  </h1>
-                  <FaLink className="text-blue-500 sm:text-xl text-sm" />
-                </div>
+          {/* Date range */}
+          <motion.div
+            className={styles.dashboard__period}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.1 }}
+          >
+            <div className={styles["dashboard__period-title"]}>
+              <FaChartLine className={styles["dashboard__period-icon"]} />
+              Analytics Period
+            </div>
+            <div className={styles["dashboard__period-fields"]}>
+              <div>
+                <label>Start Date</label>
+                <input type="date" value={startDate} max={endDate} onChange={(e) => setStartDate(e.target.value)} />
               </div>
-            ) : (
-              <ShortenUrlList data={myShortenUrls} />
-            )}
-          </div>
-        </div>
-      )}
+              <div>
+                <label>End Date</label>
+                <input type="date" value={endDate} min={startDate} max={dayjs().format("YYYY-MM-DD")} onChange={(e) => setEndDate(e.target.value)} />
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
 
-      <ShortenPopUp
-        refetch={refetch}
-        open={shortenPopUp}
-        setOpen={setShortenPopUp}
-      />
+        {/* Content */}
+        {loader ? (
+          <div className="loading-center">
+            <TailSpin height={48} width={48} color="#06b6d4" />
+            <p>Loading analytics...</p>
+          </div>
+        ) : (
+          <div className={styles.dashboard__content}>
+            {/* Chart */}
+            <motion.div
+              className={styles["dashboard__chart-card"]}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.15 }}
+            >
+              <div className={styles["dashboard__chart-card-title"]}>Click Analytics</div>
+              {totalClicks.length === 0 ? (
+                <div className={styles["dashboard__chart-card-empty"]}>
+                  <div className={styles["dashboard__chart-card-empty-icon"]}><FaChartLine /></div>
+                  <h3>No Data For This Period</h3>
+                  <p>Share your short links to start seeing engagement analytics</p>
+                </div>
+              ) : (
+                <div className={styles["dashboard__chart-card-body"]}>
+                  <Graph graphData={totalClicks} />
+                </div>
+              )}
+            </motion.div>
+
+            {/* URL list */}
+            <motion.div
+              className={styles.dashboard__section}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.22 }}
+            >
+              <div className={styles["dashboard__section-title"]}>Your Short Links</div>
+              {isLoading ? (
+                <div className="loading-center">
+                  <TailSpin height={40} width={40} color="#8b5cf6" />
+                </div>
+              ) : myShortenUrls.length === 0 ? (
+                <div className={styles.dashboard__empty}>
+                  <div className={styles["dashboard__empty-icon"]}><FaLink /></div>
+                  <h3>No Short Links Yet</h3>
+                  <p>Create your first short link to get started with tracking and analytics</p>
+                  <motion.button onClick={() => setShortenPopUp(true)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
+                    <FaPlus /> Create Your First Link
+                  </motion.button>
+                </div>
+              ) : (
+                <ShortenUrlList data={myShortenUrls} />
+              )}
+            </motion.div>
+          </div>
+        )}
+      </div>
+
+      <ShortenPopUp refetch={refetch} open={shortenPopUp} setOpen={setShortenPopUp} />
     </div>
   );
 };
